@@ -1,9 +1,13 @@
+import time
+import cProfile
+
 class JumbleSolver:
     def __init__(self, words_blanks):
         f = open("/usr/share/dict/words", "r")
         contents = f.read()
-        self.words_list = contents.split("\n")
+        words_list = contents.split("\n")
         f.close()
+        self.words_dict = self.words_to_dict(words_list)
         self.permutation_lookup_table = {}
         letters = []
         for word, blanks in words_blanks:
@@ -32,7 +36,8 @@ class JumbleSolver:
         print(options)
         for index, option in enumerate(options):
             print("Set", index, "of possibilities:")
-            print(self.permutations(option))
+            # print(self.permutations(option))
+            self.permutations(option)
 
 
     def is_anagram(self, word1, word2):
@@ -49,10 +54,10 @@ class JumbleSolver:
 
     def anagrams(self, text):
         anagram_list = []
-        for word in self.words_list:
-            if len(text) == len(word):
-                if self.is_anagram(text, word):
-                    anagram_list.append(word)
+        key = self.generate_hashed_key(text)
+        for word in self.words_dict[key]:
+            if self.is_anagram(text, word):
+                anagram_list.append(word)
         return anagram_list
 
     def permutations(self, string, n=-1):
@@ -81,8 +86,30 @@ class JumbleSolver:
         self.permutation_lookup_table[(string, n)] = all_perms
         return all_perms
 
+    def words_to_dict(self, word_list):
+        new_dict = dict()
+        for word in word_list:
+            key = self.generate_hashed_key(word)
+            try:
+                new_dict[key].append(word)
+            except:
+                new_dict[key] = [word]
+        return new_dict
+
+    def generate_hashed_key(self, word):
+        product = len(word)
+        for letter in word:
+            product *= ord(letter)
+        return product
+
+def run():
+    start = time.time()
+    JumbleSolver([("laisa", [1, 2, 3]), ("laurr", [0, 2]), 
+        ("burreek", [0, 1]), ("prouot", [2, 4, 5])])
+    # jumble = JumbleSolver([("ulqit", [0]), ("lavees", [5]), ("beeestrmp", [0]),
+    #     ("svrtaeh", [0]), ("tecthuns", [6]), ("aumutn", []), ("atolflob", [5])])
+    end = time.time()
+    print(end - start)
+
 if __name__ == "__main__":
-    # jumble = JumbleSolver([("laisa", [1, 2, 3]), ("laurr", [0, 2]), 
-    #     ("burreek", [0, 1]), ("prouot", [2, 4, 5])])
-    jumble = JumbleSolver([("ulqit", [0]), ("lavees", [5]), ("beeestrmp", [0]),
-        ("svrtaeh", [0]), ("tecthuns", [6]), ("aumutn", []), ("atolflob", [5])])
+    cProfile.run("run()")
